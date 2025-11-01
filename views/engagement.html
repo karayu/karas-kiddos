@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Stitch Design</title>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#13a4ec",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101c22",
+            },
+            fontFamily: {
+              display: ["Epilogue"],
+            },
+            borderRadius: {
+              DEFAULT: "0.5rem",
+              lg: "1rem",
+              xl: "1.5rem",
+              full: "9999px",
+            },
+          },
+        },
+      };
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-800 dark:text-gray-200">
+<div class="flex h-screen flex-col">
+<header class="sticky top-0 z-10 bg-background-light/80 py-4 backdrop-blur-sm dark:bg-background-dark/80">
+<div class="container mx-auto flex items-center justify-between px-4">
+<button class="flex items-center justify-center rounded-full p-2 hover:bg-primary/10">
+<span class="material-symbols-outlined text-gray-700 dark:text-gray-300"> arrow_back </span>
+</button>
+<h1 class="text-lg font-bold text-gray-900 dark:text-white">Statistics</h1>
+<div class="w-10"></div>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto">
+<div class="border-b border-gray-200 dark:border-gray-800">
+<nav aria-label="Tabs" class="-mb-px flex space-x-8 px-4">
+<a class="border-b-2 border-primary px-1 py-4 text-sm font-bold text-primary" href="#"> Categories </a>
+<a class="border-b-2 border-transparent px-1 py-4 text-sm font-bold text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-gray-700 dark:hover:text-gray-300" href="#"> Top </a>
+</nav>
+</div>
+<div class="p-4">
+<h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">All Content</h2>
+<div class="grid grid-cols-2 gap-4">
+<div class="rounded-xl border border-gray-200 bg-white p-4 text-center dark:border-gray-800 dark:bg-gray-900">
+<p class="text-sm text-gray-500 dark:text-gray-400">Your Views</p>
+<p class="text-3xl font-bold text-gray-900 dark:text-white">123</p>
+</div>
+<div class="rounded-xl border border-gray-200 bg-white p-4 text-center dark:border-gray-800 dark:bg-gray-900">
+<p class="text-sm text-gray-500 dark:text-gray-400">Other Views</p>
+<p class="text-3xl font-bold text-gray-900 dark:text-white">456</p>
+</div>
+</div>
+</div>
+<div class="p-4">
+<h2 class="mb-4 text-xl font-bold text-gray-900 dark:text-white">Top Ranked</h2>
+<div class="space-y-4">
+<div class="flex items-center justify-between rounded-lg bg-white p-2 dark:bg-gray-900">
+<div class="flex items-center gap-4">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCQf8EGvMWx9-UpR-I48_yHYdzPqpZOgQ-yWvvdZgHPKTrFpxAo2jN9SavAbISPwHBbOH_oKCl7ix-IPbuOtfGY5mvVrhioXvN-QvLLx37X0pYuviR9g7q0W2nlIw4rUV8HAGgt0HV9IaRPhwG1-q6jNuNP2rem_HBo58LNRtmzydn58nLImBgcnAxIVJ47m9SJx2sj0lwGrUTQjI4AwHq8fcTGUyFFcX_D3vo2yQarlB7DLWEDg-Dt8X1P0H8s_du_Ro_xkP6tONnf');"></div>
+<div>
+<p class="font-bold text-gray-900 dark:text-white">The Alphabet Song</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Music</p>
+</div>
+</div>
+<button class="flex items-center justify-center rounded-full p-2 hover:bg-primary/10">
+<span class="material-symbols-outlined text-gray-700 dark:text-gray-300"> share </span>
+</button>
+</div>
+<div class="flex items-center justify-between rounded-lg bg-white p-2 dark:bg-gray-900">
+<div class="flex items-center gap-4">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCUT4knyXqizAVDPG0uUQkzXgvwoMPMy8bkfaDmgPVqSXCD5A1lpwj4vy-4RPXVhUXH3EG4r3j6P0ZR8qxlRv143pD1Gv4z78uf8Wx4ePtC6CrToN4zpUNCMPjh5x7urqCnmNU3HmELc7IojO3EGLBQFxIKDcc1bDYfBq9G_tst85_uf0NLE5CwH9aF5pxy03sBc4_wB1aNAKEqdMqUARQlYKxP2d8sxg4jovdcI6NyX5iVQ6DI3TB7PhI4mGcmdzUy3FIru4WmTtMi');"></div>
+<div>
+<p class="font-bold text-gray-900 dark:text-white">Shapes</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Education</p>
+</div>
+</div>
+<button class="flex items-center justify-center rounded-full p-2 hover:bg-primary/10">
+<span class="material-symbols-outlined text-gray-700 dark:text-gray-300"> share </span>
+</button>
+</div>
+<div class="flex items-center justify-between rounded-lg bg-white p-2 dark:bg-gray-900">
+<div class="flex items-center gap-4">
+<div class="flex h-12 w-12 items-center justify-center rounded-lg bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC1tT9GpF4G44MYdIABRv3atWFz3iTvBAGj1f5r4CT-7sJTF9A3ZKR0dYnlMG-Hvn8z3y6mQv82gbvgPht9etCSdcqoO2KyDQARzNURgdz4OKi5DVguGXpwFO8_FCVprRLXnimpGthE3YJHaIDh_10ipmPPVmYm7vDBYutVMwe4bWdazyEHn50ha4BfC7Q3Aiy7hoZCkucjPnGTflX-LTS8c6bp2hxpNpmfnV8fl7-qN2wTTB4iS7pHZ7Rxk7aly77Q-ml-zPGab3Cx');"></div>
+<div>
+<p class="font-bold text-gray-900 dark:text-white">Colors</p>
+<p class="text-sm text-gray-500 dark:text-gray-400">Education</p>
+</div>
+</div>
+<button class="flex items-center justify-center rounded-full p-2 hover:bg-primary/10">
+<span class="material-symbols-outlined text-gray-700 dark:text-gray-300"> share </span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<footer class="sticky bottom-0 border-t border-gray-200 bg-background-light/90 py-2 backdrop-blur-sm dark:border-gray-800 dark:bg-background-dark/90">
+<nav class="flex justify-around">
+<a class="flex flex-col items-center gap-1 px-4 py-1 text-gray-500 dark:text-gray-400" href="#">
+<span class="material-symbols-outlined"> video_library </span>
+<span class="text-xs">Library</span>
+</a>
+<a class="flex flex-col items-center gap-1 rounded-full bg-primary/10 px-4 py-1 text-primary" href="#">
+<span class="material-symbols-outlined"> leaderboard </span>
+<span class="text-xs font-bold">Engagement</span>
+</a>
+<a class="flex flex-col items-center gap-1 px-4 py-1 text-gray-500 dark:text-gray-400" href="#">
+<span class="material-symbols-outlined"> person </span>
+<span class="text-xs">Profile</span>
+</a>
+</nav>
+</footer>
+</div>
+
+</body></html>
