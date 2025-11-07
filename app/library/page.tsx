@@ -1,20 +1,7 @@
 import { TabBar } from "../components/TabBar";
 import { CreatePublicGenerate } from "./CreatePublicGenerate";
-import { getServiceClient } from "@/lib/supabase/server";
 
-export default async function LibraryPage() {
-  const hasSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
-  let items: { id: string; title: string; category: string; type: string }[] | null = null;
-  if (hasSupabase) {
-    const db = getServiceClient();
-    const { data } = await db
-      .from("content_items")
-      .select("id,title,category,type,created_at")
-      .eq("is_public", true)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    items = (data as any) ?? [];
-  }
+export default function LibraryPage() {
   return (
     <>
       <header className="sticky top-0 z-10 flex items-center justify-between bg-background-light p-4 dark:bg-background-dark">
@@ -76,35 +63,6 @@ export default async function LibraryPage() {
           ))}
         </div>
       </main>
-      <section className="px-4 pb-6">
-        <h2 className="text-xl font-bold mb-3">Latest Public Content</h2>
-        {!hasSupabase ? (
-          <p className="text-sm text-[#617c89] dark:text-[#a0b3bd]">Supabase is not configured yet. See setup instructions below.</p>
-        ) : (
-          <div className="space-y-2">
-            {(items ?? []).map((it) => (
-              <a key={it.id} href={`/content/${it.id}`} className="flex items-center justify-between rounded-lg bg-white p-3 dark:bg-[#192730]">
-                <div>
-                  <p className="font-medium">{it.title}</p>
-                  <p className="text-xs text-[#617c89] dark:text-[#a0b3bd]">{String(it.category)} · {String(it.type)}</p>
-                </div>
-                <span className="material-symbols-outlined text-2xl text-[#617c89] dark:text-[#a0b3bd]">chevron_right</span>
-              </a>
-            ))}
-          </div>
-        )}
-      </section>
-      {!hasSupabase && (
-        <section className="px-4 pb-10">
-          <h3 className="font-semibold mb-2">Setup</h3>
-          <ol className="list-decimal pl-5 space-y-1 text-sm text-[#617c89] dark:text-[#a0b3bd]">
-            <li>Create a Supabase project.</li>
-            <li>Add the schema in <code className="bg-black/10 px-1 rounded">supabase/schema.sql</code>.</li>
-            <li>Add a <code className="bg-black/10 px-1 rounded">.env.local</code> with your Supabase URL and keys.</li>
-            <li>Restart the dev server.</li>
-          </ol>
-        </section>
-      )}
       <TabBar />
     </>
   );

@@ -25,10 +25,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/library/bedtime/checklist/create/page.js"
     ],
-    "/_not-found/page": [
+    "/content/[id]/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/_not-found/page.js"
+      "static/chunks/app/content/[id]/page.js"
     ]
   }
 }
