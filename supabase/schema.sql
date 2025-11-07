@@ -4,8 +4,9 @@ create type content_type as enum ('checklist','story','song_lyrics','schedule','
 create type engagement_event_type as enum ('view','play','share');
 
 -- Tables
+-- Note: For public MVP, profiles table is optional since we're not using auth
 create table if not exists public.profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
+  id uuid primary key default gen_random_uuid(),
   email text,
   name text,
   home_address text,
@@ -108,15 +109,14 @@ create policy "shares read public" on public.shares for select using (true);
 create policy "purchases own" on public.purchases for all using (profile_id = auth.uid()) with check (profile_id = auth.uid());
 
 -- Seed public templates for new situations (profile_id null, is_public true)
-
--- Helper view/rpc for engagement by category (optional)
--- (Reverted) engagement aggregation helpers removed for now
+-- Only insert if they don't already exist (check by title)
 insert into public.content_items (profile_id, child_id, title, category, type, body, is_public)
-values
-  (null, null, 'Seeing the Dentist', 'new_situations', 'story', '{"story_html":"<p>A friendly story about visiting the dentist...</p>"}', true),
-  (null, null, 'Sleepover at Grandma\'s', 'new_situations', 'story', '{"story_html":"<p>Getting ready for a fun sleepover...</p>"}', true),
-  (null, null, 'Starting a New School', 'new_situations', 'story', '{"story_html":"<p>What to expect on your first day...</p>"}', true),
-  (null, null, 'Joining the Soccer Team', 'new_situations', 'story', '{"story_html":"<p>Teamwork and trying new things...</p>"}', true)
-on conflict do nothing;
+select * from (values
+  (null::uuid, null::uuid, 'Seeing the Dentist', 'new_situations'::category, 'story'::content_type, '{"story_html":"<p>A friendly story about visiting the dentist...</p>"}'::jsonb, true),
+  (null::uuid, null::uuid, 'Sleepover at Grandma''s', 'new_situations'::category, 'story'::content_type, '{"story_html":"<p>Getting ready for a fun sleepover...</p>"}'::jsonb, true),
+  (null::uuid, null::uuid, 'Starting a New School', 'new_situations'::category, 'story'::content_type, '{"story_html":"<p>What to expect on your first day...</p>"}'::jsonb, true),
+  (null::uuid, null::uuid, 'Joining the Soccer Team', 'new_situations'::category, 'story'::content_type, '{"story_html":"<p>Teamwork and trying new things...</p>"}'::jsonb, true)
+) as v(profile_id, child_id, title, category, type, body, is_public)
+where not exists (select 1 from public.content_items where content_items.title = v.title);
 
 

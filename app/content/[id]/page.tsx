@@ -17,9 +17,34 @@ export default async function ContentPage({ params }: { params: { id: string } }
       </header>
       <main className="p-4 space-y-4">
         <p className="text-sm text-[#617c89] dark:text-[#a0b3bd]">{String(data.category)} · {String(data.type)}</p>
+        
+        {/* Show generated image for checklists */}
+        {data.type === "checklist" && (data.cover_url || data.body?.image_url) && (
+          <div className="rounded-lg overflow-hidden bg-white dark:bg-[#192730]">
+            <img 
+              src={data.cover_url || data.body?.image_url} 
+              alt={data.title}
+              className="w-full h-auto"
+            />
+          </div>
+        )}
+        
         <article className="prose dark:prose-invert max-w-none bg-white dark:bg-[#192730] p-4 rounded-lg">
           {data.body?.story_html ? (
             <div dangerouslySetInnerHTML={{ __html: data.body.story_html }} />
+          ) : data.type === "checklist" && data.body?.steps ? (
+            <div className="space-y-3">
+              <h3 className="font-bold text-lg mb-4">{data.body.title || data.title}</h3>
+              {data.body.steps.map((step: any, i: number) => (
+                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
+                  <input type="checkbox" className="mt-1" />
+                  <div className="flex-1">
+                    <p className="font-medium">{step.label}</p>
+                    {step.tip && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{step.tip}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : (
             <pre className="whitespace-pre-wrap text-sm">{JSON.stringify(data.body, null, 2)}</pre>
           )}

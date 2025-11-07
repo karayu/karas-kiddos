@@ -19,7 +19,16 @@ export function CreatePublicGenerate() {
           prompt: "Create a supportive, age-appropriate piece for a preschooler.",
         }),
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        let errorData: { error?: string };
+        try {
+          errorData = await res.json();
+        } catch {
+          const errorText = await res.text();
+          errorData = { error: errorText };
+        }
+        throw new Error(errorData.error || `HTTP ${res.status}`);
+      }
       window.location.reload();
     } catch (e: any) {
       setError(e.message || "Failed to generate");

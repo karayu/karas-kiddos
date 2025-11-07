@@ -58,12 +58,12 @@ export default async function LibraryPage() {
         <h2 className="px-4 pt-4 pb-3 text-xl font-bold">Categories</h2>
         <div className="space-y-2 px-4">
           {[
-            { icon: "dark_mode", label: "Bedtime", items: 12 },
-            { icon: "directions_car", label: "Getting Out the Door", items: 8 },
-            { icon: "check_box", label: "Chores", items: 5 },
-            { icon: "grade", label: "Favorites", items: 3 },
+            { icon: "dark_mode", label: "Bedtime", items: 12, href: "/library/bedtime" },
+            { icon: "directions_car", label: "Getting Out the Door", items: 8, href: "#" },
+            { icon: "check_box", label: "Chores", items: 5, href: "#" },
+            { icon: "grade", label: "Favorites", items: 3, href: "#" },
           ].map((c) => (
-            <div key={c.label} className="flex items-center gap-4 rounded-lg bg-white p-3 dark:bg-[#192730]">
+            <a key={c.label} href={c.href} className="flex items-center gap-4 rounded-lg bg-white p-3 dark:bg-[#192730]">
               <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary dark:bg-primary/20">
                 <span className="material-symbols-outlined text-2xl">{c.icon}</span>
               </div>
@@ -72,7 +72,7 @@ export default async function LibraryPage() {
                 <p className="text-sm text-[#617c89] dark:text-[#a0b3bd]">{c.items} items</p>
               </div>
               <span className="material-symbols-outlined text-2xl text-[#617c89] dark:text-[#a0b3bd]">arrow_forward_ios</span>
-            </div>
+            </a>
           ))}
         </div>
       </main>
