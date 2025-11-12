@@ -7,6 +7,9 @@ type GenerateBody = {
   type: "checklist" | "story" | "song_lyrics" | "schedule" | "calendar";
   childId?: string;
   prompt?: string;
+  // Raw form data for checklists
+  favoriteThing?: string;
+  routineItems?: string[];
 };
 
 export async function POST(req: Request) {
@@ -23,7 +26,7 @@ export async function POST(req: Request) {
 
     // For checklist type, generate an image using Gemini 2.5 Flash
     if (body.type === "checklist") {
-      const imagePrompt = `Create a illustrated checklist. this checklist should have a whimsical theme, appropriate for looking fun/exciting to a 5 year old. Make the protagonist a rainbow unicorn, excited to do each of the steps. Make it look professionally illustrated by a children's book author like Hollie Mengert.
+      const imagePrompt = `Create a illustrated checklist. this checklist should have a whimsical theme, appropriate for looking fun/exciting to a 5 year old. Make the protagonist a '+ favoriteThing+' unicorn, excited to do each of the steps. Make it look professionally illustrated by a children's book author like Hollie Mengert.
 
 The name of the checklist should be: Rhea Unicorn goes to bed
 

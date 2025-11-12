@@ -1,8 +1,5 @@
 {
   "/page": "app/page.js",
-  "/library/bedtime/page": "app/library/bedtime/page.js",
   "/library/page": "app/library/page.js",
-  "/library/bedtime/checklist/create/page": "app/library/bedtime/checklist/create/page.js",
-  "/api/content/generate/route": "app/api/content/generate/route.js",
-  "/content/[id]/page": "app/content/[id]/page.js"
+  "/library/bedtime/page": "app/library/bedtime/page.js"
 }

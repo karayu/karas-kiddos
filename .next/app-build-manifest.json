@@ -19,16 +19,6 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/library/bedtime/page.js"
-    ],
-    "/library/bedtime/checklist/create/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/library/bedtime/checklist/create/page.js"
-    ],
-    "/content/[id]/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/content/[id]/page.js"
     ]
   }
 }
