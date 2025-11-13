@@ -7,10 +7,14 @@ import { TabBar } from "@/app/components/TabBar";
 export default function CreateStoryPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState("");
 
-  async function handleGenerate() {
+  async function handleGenerate(e?: React.FormEvent) {
+    if (e) e.preventDefault();
     setLoading(true);
     setError(null);
+
+    const storyPrompt = prompt.trim() || "Create a calming, personalized bedtime storybook that helps a child wind down and feel safe. Make it age-appropriate for a 5-year-old with a conflict that gets resolved at the end.";
 
     try {
       const res = await fetch("/api/content/generate", {
@@ -18,8 +22,8 @@ export default function CreateStoryPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           category: "bedtime",
-          type: "story",
-          prompt: "Create a calming, personalized bedtime story that helps a child wind down and feel safe. Make it age-appropriate for a preschooler.",
+          type: "storybook",
+          prompt: storyPrompt,
         }),
       });
 
@@ -52,29 +56,50 @@ export default function CreateStoryPage() {
         <div className="w-10" />
       </header>
       <main className="p-4 pb-20">
-        <div className="rounded-xl bg-white p-6 dark:bg-[#192730]">
-          <div className="mb-4 flex h-40 items-center justify-center rounded-lg bg-primary/10 dark:bg-primary/20">
-            <span className="material-symbols-outlined text-6xl text-primary">auto_stories</span>
-          </div>
-          <h2 className="mb-2 text-lg font-bold">Bedtime Story</h2>
-          <p className="mb-6 text-sm text-[#617c89] dark:text-[#a0b3bd]">
-            Create a personalized storybook that you can read together.
-          </p>
-
-          {error && (
-            <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
-              {error}
+        <form onSubmit={handleGenerate} className="space-y-6">
+          <div className="rounded-xl bg-white p-6 dark:bg-[#192730]">
+            <div className="mb-4 flex h-40 items-center justify-center rounded-lg bg-primary/10 dark:bg-primary/20">
+              <span className="material-symbols-outlined text-6xl text-primary">auto_stories</span>
             </div>
-          )}
+            <h2 className="mb-2 text-lg font-bold">Bedtime Storybook</h2>
+            <p className="mb-4 text-sm text-[#617c89] dark:text-[#a0b3bd]">
+              Create a personalized 10-page illustrated storybook that you can read together.
+            </p>
 
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            className="w-full rounded-full bg-primary py-3 text-white disabled:opacity-50"
-          >
-            {loading ? "Creating..." : "Generate Story"}
-          </button>
-        </div>
+            <div className="mb-4">
+              <label className="mb-2 block text-sm font-medium">What story would you like? (optional)</label>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="e.g., A story about a brave little bunny who overcomes their fear of the dark..."
+                className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 dark:border-gray-700 dark:bg-[#192730] min-h-[100px]"
+                rows={4}
+              />
+              <p className="mt-2 text-xs text-[#617c89] dark:text-[#a0b3bd]">
+                Leave blank for a default calming bedtime story, or describe the story you'd like.
+              </p>
+            </div>
+
+            {error && (
+              <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-full bg-primary py-3 text-white disabled:opacity-50"
+            >
+              {loading ? "Creating Storybook..." : "Generate Storybook"}
+            </button>
+            {loading && (
+              <p className="mt-2 text-center text-xs text-[#617c89] dark:text-[#a0b3bd]">
+                This may take a minute - we're creating 10 pages with illustrations!
+              </p>
+            )}
+          </div>
+        </form>
       </main>
       <TabBar />
     </>

@@ -4,7 +4,7 @@ import { getGemini } from "@/lib/gemini";
 
 type GenerateBody = {
   category: "bedtime" | "getting_out_the_door" | "chores" | "new_situations";
-  type: "checklist" | "story" | "song_lyrics" | "schedule" | "calendar";
+  type: "checklist" | "story" | "song_lyrics" | "schedule" | "calendar" | "storybook";
   childId?: string;
   prompt?: string;
   // Raw form data for checklists
@@ -26,53 +26,152 @@ export async function POST(req: Request) {
 
     // For checklist type, generate an image using Gemini 2.5 Flash
     if (body.type === "checklist") {
-      const imagePrompt = `Create a illustrated checklist. this checklist should have a whimsical theme, appropriate for looking fun/exciting to a 5 year old. Make the protagonist a '+ favoriteThing+' unicorn, excited to do each of the steps. Make it look professionally illustrated by a children's book author like Hollie Mengert.
+      // Get favorite thing and routine items from form data
+      const favoriteThing = body.favoriteThing || "unicorn";
+      const routineItems = body.routineItems && body.routineItems.length > 0 
+        ? body.routineItems.filter((item: string) => item.trim() !== "")
+        : ["brush teeth", "put on pajamas", "read book"];
+      
+      // Build the checklist name
+      const checklistName = `Rhea the ${favoriteThing} goes to bed`;
+      
+      // Build the imagery descriptions for each routine item with colorful descriptions
+      const imageryDescriptions = routineItems.map((item: string, index: number) => {
+        const itemNum = index + 1;
+        const isFirst = index === 0;
+        const isLast = index === routineItems.length - 1;
+        
+        // Add colorful descriptions based on position
+        let description = "";
+        if (isFirst) {
+          description = `with a proud smile on their face. Use bright colorful colors.`;
+        } else if (isLast) {
+          // Special handling for reading/book items
+          if (item.toLowerCase().includes('read') || item.toLowerCase().includes('book')) {
+            description = `in bed with their eyes closed, looking peaceful and sleepy.`;
+          } else {
+            description = `with a happy, content expression.`;
+          }
+        } else if (index === 1) {
+          description = `but struggling with it, looking determined.`;
+        } else {
+          description = `with focused concentration.`;
+        }
+        
+        return `${itemNum}) On the ${isFirst ? 'first' : isLast && routineItems.length > 2 ? 'last' : itemNum === 2 ? 'second' : `${itemNum}th`} row, it should show the ${favoriteThing} ${item} ${description}`;
+      }).join('\n\n');
+      
+      const imagePrompt = `Create an illustrated checklist. This checklist should have a whimsical theme, appropriate for looking fun/exciting to a 5 year old. Make the protagonist a ${favoriteThing}, excited to do each of the steps. Make it look professionally illustrated by a children's book author like Hollie Mengert.
 
-The name of the checklist should be: Rhea Unicorn goes to bed
+The name of the checklist should be: ${checklistName}
 
 On the left column, the checklist should have imagery:
 
-1) On the first row, it should show the rainbow unicorn brushing her teeth with a proud expression on her face. Use bright colorful colors.
+${imageryDescriptions}
 
-2) On the second row, it should show the rainbow unicorn putting on pajamas but struggling with it
+Make the ${favoriteThing} images take up half the page.
 
-3) On the third row, it should show the rainbow unicorn reading a book in bed with her eyes closed
-
-Make the unicorn images take up half the page.
-
-On the right column, it should just feature 3 blank rows (so that the child can write in them)
+On the right column, it should just feature ${routineItems.length} blank rows (so that the child can write in them)
 
 Make it good!`;
 
-      // Use Gemini 2.5 Flash for image generation
-      // Note: Gemini models are text models and don't generate images directly
-      // We'll skip image generation for now and create the checklist
+      console.log("Image Prompt:", imagePrompt);
+      console.log("======================");
+
+      // Use Gemini 2.5 Flash Image for image generation
+      // Reference: https://ai.google.dev/gemini-api/docs/image-generation#javascript
+      
       let imageUrl: string | null = null;
       
-      // Skip image generation for now - Gemini doesn't support it
-      // TODO: Integrate with actual image generation API (Imagen, DALL-E, etc.)
-      console.log("Skipping image generation - Gemini 2.5 Flash is a text model");
-
-
-      // Parse routine items from prompt if available
-      let steps = [
-        { label: "brush teeth", tip: "Great job brushing!" },
-        { label: "put on pajamas", tip: "You're doing great!" },
-        { label: "read book", tip: "Time for a story!" },
-      ];
-      
-      if (body.prompt?.includes("routine includes:")) {
-        const routinePart = body.prompt.split("routine includes:")[1]?.split(".")[0];
-        if (routinePart) {
-          steps = routinePart.split(",").map((s: string) => ({
-            label: s.trim(),
-            tip: `Great job on ${s.trim()}!`,
-          }));
+      try {
+        const genAI = getGemini();
+        // Use the correct model name for image generation
+        const model = genAI.getGenerativeModel({ 
+          model: "gemini-2.5-flash-image"
+        });
+        
+        console.log("=== Calling Gemini for Image Generation ===");
+        console.log("Model: gemini-2.5-flash-image");
+        console.log("Image Prompt:", imagePrompt);
+        
+        // Generate image using Gemini 2.5 Flash Image
+        const completion = await model.generateContent(imagePrompt);
+        
+        const response = completion.response;
+        
+        console.log("=== Gemini Response ===");
+        console.log("Candidates:", response.candidates?.length);
+        
+        // Check for image data in the response parts
+        let base64Image: string | null = null;
+        
+        // Iterate through all parts in the response
+        if (response.candidates?.[0]?.content?.parts) {
+          for (const part of response.candidates[0].content.parts) {
+            console.log("Part keys:", Object.keys(part));
+            
+            // Check for inlineData (image data)
+            if (part.inlineData) {
+              base64Image = part.inlineData.data;
+              console.log("Found image in inlineData, mimeType:", part.inlineData.mimeType);
+              break; // Found the image, no need to check other parts
+            }
+            
+            // Check for text (might contain image description or URL)
+            if (part.text) {
+              console.log("Part text preview:", part.text.substring(0, 200));
+            }
+          }
         }
+        
+        console.log("Base64 image found:", base64Image ? "Yes" : "No");
+        console.log("======================");
+
+        // If we have a base64 image, save it to Supabase Storage
+        if (base64Image) {
+          try {
+            const imageBuffer = Buffer.from(base64Image, "base64");
+            const fileName = `checklists/${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+            
+            const { data: uploadData, error: uploadError } = await db.storage
+              .from("checklists")
+              .upload(fileName, imageBuffer, {
+                contentType: "image/png",
+                upsert: false,
+              });
+
+            if (!uploadError && uploadData) {
+              const { data: urlData } = db.storage
+                .from("checklists")
+                .getPublicUrl(fileName);
+              imageUrl = urlData.publicUrl;
+              console.log("Image saved to Supabase Storage:", imageUrl);
+              console.log("🔗 Direct link to generated image:", imageUrl);
+            } else {
+              console.error("Storage upload error:", uploadError);
+              // Fallback to data URL if storage fails
+              imageUrl = `data:image/png;base64,${base64Image}`;
+            }
+          } catch (storageError: any) {
+            console.error("Storage error:", storageError);
+            imageUrl = `data:image/png;base64,${base64Image}`;
+          }
+        } else {
+          console.log("No image data found in Gemini response");
+        }
+      } catch (imageError: any) {
+        console.error("Image generation error:", imageError.message || imageError);
+        // Continue without image - we'll still create the checklist
       }
 
+      // Build steps from the same routineItems we used for the image prompt
+      const steps = routineItems.map((item: string) => ({
+        label: item.trim(),
+        tip: `Great job on ${item.trim()}!`,
+      }));
+
       const parsed = {
-        title: "Rhea Unicorn goes to bed",
+        title: checklistName,
         steps,
         image_url: imageUrl,
         image_prompt: imagePrompt,
@@ -98,6 +197,214 @@ Make it good!`;
           console.error("Database insert error:", error);
           return NextResponse.json({ error: error.message }, { status: 500 });
         }
+        return NextResponse.json({ content: inserted });
+      } catch (dbError: any) {
+        console.error("Database error:", dbError);
+        return NextResponse.json({ error: dbError.message || "Database error" }, { status: 500 });
+      }
+    }
+
+    // For storybook type, generate a 10-page illustrated storybook
+    if (body.type === "storybook") {
+      const genAI = getGemini();
+      const textModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const imageModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" });
+
+      const basePrompt = body.prompt || "Create a fun, entertaining story for a 5-year-old with a conflict that gets resolved at the end.";
+      
+      // Step 1: Generate the story structure (10 pages)
+      const storyPrompt = `${basePrompt}
+
+Create a professional, whimsical 10-page storybook for a 5-year-old child. The story should:
+- Have a clear conflict that gets resolved by the end
+- Be entertaining and age-appropriate
+- Be professional and whimsical in style
+- Each page should have 2-3 sentences of text
+
+Return ONLY valid JSON in this exact format:
+{
+  "title": "Story Title",
+  "pages": [
+    {"pageNumber": 1, "text": "Page 1 text here", "imageDescription": "Detailed description of what should be illustrated on this page"},
+    {"pageNumber": 2, "text": "Page 2 text here", "imageDescription": "Detailed description..."},
+    ... (10 pages total)
+  ]
+}
+
+Important: Return ONLY the JSON object, no markdown code blocks, no explanation text.`;
+
+      console.log("=== Generating Storybook Structure ===");
+      const storyCompletion = await textModel.generateContent(storyPrompt);
+      let storyText = storyCompletion.response.text();
+      
+      // Clean up markdown code blocks
+      storyText = storyText.trim();
+      if (storyText.startsWith("```json")) {
+        storyText = storyText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      } else if (storyText.startsWith("```")) {
+        storyText = storyText.replace(/^```\s*/, "").replace(/\s*```$/, "");
+      }
+      
+      let storyData: any;
+      try {
+        storyData = JSON.parse(storyText);
+      } catch (parseError) {
+        console.error("Story JSON parse error:", parseError);
+        return NextResponse.json({ error: "Failed to parse story structure" }, { status: 500 });
+      }
+
+      if (!storyData.pages || storyData.pages.length !== 10) {
+        return NextResponse.json({ error: "Story must have exactly 10 pages" }, { status: 500 });
+      }
+
+      console.log(`Generated story structure: ${storyData.title} with ${storyData.pages.length} pages`);
+
+      // Step 2: Generate images for each page
+      const pagesWithImages = [];
+      let coverImageUrl: string | null = null;
+      let firstAvailableImageUrl: string | null = null;
+
+      for (let i = 0; i < storyData.pages.length; i++) {
+        const page = storyData.pages[i];
+        console.log(`Generating image for page ${page.pageNumber}...`);
+
+        const imagePrompt = `Create a professional, whimsical children's book illustration. Style: colorful, playful, suitable for a 5-year-old, like a high-quality picture book by authors like Eric Carle or Julia Donaldson. 
+
+${page.imageDescription}
+
+Make it bright, engaging, and professional. The illustration should fill the entire image and be suitable for a storybook page.`;
+
+        try {
+          const imageCompletion = await imageModel.generateContent(imagePrompt);
+          const imageResponse = imageCompletion.response;
+          
+          let base64Image: string | null = null;
+          
+          // Extract image from response
+          if (imageResponse.candidates?.[0]?.content?.parts) {
+            for (const part of imageResponse.candidates[0].content.parts) {
+              if (part.inlineData) {
+                base64Image = part.inlineData.data;
+                break;
+              }
+            }
+          }
+
+          if (base64Image) {
+            // Save to Supabase Storage
+            const imageBuffer = Buffer.from(base64Image, "base64");
+            const fileName = `storybooks/${Date.now()}-${Math.random().toString(36).substring(7)}-page-${page.pageNumber}.png`;
+            
+            const { data: uploadData, error: uploadError } = await db.storage
+              .from("checklists") // Using checklists bucket for now, could create a storybooks bucket
+              .upload(fileName, imageBuffer, {
+                contentType: "image/png",
+                upsert: false,
+              });
+
+            if (!uploadError && uploadData) {
+              const { data: urlData } = db.storage
+                .from("checklists")
+                .getPublicUrl(fileName);
+              const imageUrl = urlData.publicUrl;
+              
+              pagesWithImages.push({
+                pageNumber: page.pageNumber,
+                text: page.text,
+                imageUrl: imageUrl,
+                imageDescription: page.imageDescription,
+              });
+
+              // Use first page as cover/thumbnail
+              if (page.pageNumber === 1) {
+                coverImageUrl = imageUrl;
+                console.log(`✓ Cover/thumbnail set from page 1: ${imageUrl}`);
+              }
+              
+              // Track first available image as fallback
+              if (!firstAvailableImageUrl) {
+                firstAvailableImageUrl = imageUrl;
+              }
+
+              console.log(`✓ Page ${page.pageNumber} image saved: ${imageUrl}`);
+            } else {
+              console.error(`Upload error for page ${page.pageNumber}:`, uploadError);
+              // Continue without image for this page
+              pagesWithImages.push({
+                pageNumber: page.pageNumber,
+                text: page.text,
+                imageUrl: null,
+                imageDescription: page.imageDescription,
+              });
+            }
+          } else {
+            console.log(`No image data found for page ${page.pageNumber}`);
+            pagesWithImages.push({
+              pageNumber: page.pageNumber,
+              text: page.text,
+              imageUrl: null,
+              imageDescription: page.imageDescription,
+            });
+          }
+        } catch (imageError: any) {
+          console.error(`Image generation error for page ${page.pageNumber}:`, imageError.message);
+          // Continue without image
+          pagesWithImages.push({
+            pageNumber: page.pageNumber,
+            text: page.text,
+            imageUrl: null,
+            imageDescription: page.imageDescription,
+          });
+        }
+
+        // Add a small delay between image generations to avoid rate limits
+        if (i < storyData.pages.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      // Ensure we have a cover image - use first page if available, otherwise first available image
+      if (!coverImageUrl && firstAvailableImageUrl) {
+        coverImageUrl = firstAvailableImageUrl;
+        console.log(`✓ Using first available image as cover/thumbnail: ${coverImageUrl}`);
+      }
+
+      // Step 3: Save storybook to database
+      const storybookData = {
+        title: storyData.title,
+        pages: pagesWithImages,
+        originalPrompt: basePrompt,
+      };
+
+      try {
+        console.log("=== Saving Storybook ===");
+        console.log("Title:", storybookData.title);
+        console.log("Cover/Thumbnail URL:", coverImageUrl);
+        console.log("Number of pages:", pagesWithImages.length);
+        
+        const { data: inserted, error } = await db
+          .from("content_items")
+          .insert({
+            profile_id: null,
+            child_id: null,
+            title: storybookData.title,
+            category: body.category,
+            type: "story", // Using "story" type since "storybook" isn't in the enum yet
+            body: storybookData,
+            cover_url: coverImageUrl, // This is the thumbnail from the first page image
+            is_public: true,
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error("Database insert error:", error);
+          return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        console.log("=== Storybook Generated Successfully ===");
+        console.log("Storybook ID:", inserted.id);
+        console.log("Cover URL saved:", inserted.cover_url);
         return NextResponse.json({ content: inserted });
       } catch (dbError: any) {
         console.error("Database error:", dbError);

@@ -1,8 +1,8 @@
-// File: /Users/karayu/projects/karaskiddos/app/library/bedtime/page.tsx
-import * as entry from '../../../../../app/library/bedtime/page.js'
+// File: /Users/karayu/projects/karaskiddos/app/library/new-situations/[situation]/create/page.tsx
+import * as entry from '../../../../../../../app/library/new-situations/[situation]/create/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
-type TEntry = typeof import('../../../../../app/library/bedtime/page.js')
+type TEntry = typeof import('../../../../../../../app/library/new-situations/[situation]/create/page.js')
 
 // Check that the entry is a valid entry
 checkFields<Diff<{

@@ -15,10 +15,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/library/page.js"
     ],
-    "/library/bedtime/page": [
+    "/library/new-situations/[situation]/create/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/library/bedtime/page.js"
+      "static/chunks/app/library/new-situations/[situation]/create/page.js"
+    ],
+    "/content/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/content/[id]/page.js"
     ]
   }
 }

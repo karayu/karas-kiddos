@@ -29,26 +29,36 @@ export default async function ContentPage({ params }: { params: { id: string } }
           </div>
         )}
         
-        <article className="prose dark:prose-invert max-w-none bg-white dark:bg-[#192730] p-4 rounded-lg">
-          {data.body?.story_html ? (
-            <div dangerouslySetInnerHTML={{ __html: data.body.story_html }} />
-          ) : data.type === "checklist" && data.body?.steps ? (
-            <div className="space-y-3">
-              <h3 className="font-bold text-lg mb-4">{data.body.title || data.title}</h3>
-              {data.body.steps.map((step: any, i: number) => (
-                <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
-                  <input type="checkbox" className="mt-1" />
-                  <div className="flex-1">
-                    <p className="font-medium">{step.label}</p>
-                    {step.tip && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">{step.tip}</p>}
+        {/* Storybook display */}
+        {data.body?.pages && Array.isArray(data.body.pages) ? (
+          <div className="space-y-6">
+            {data.body.pages.map((page: any, index: number) => (
+              <div key={index} className="rounded-xl bg-white dark:bg-[#192730] overflow-hidden shadow-sm">
+                {page.imageUrl && (
+                  <div className="w-full aspect-video bg-gray-100 dark:bg-gray-800">
+                    <img
+                      src={page.imageUrl}
+                      alt={`Page ${page.pageNumber || index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
                   </div>
+                )}
+                <div className="p-6">
+                  <p className="text-sm text-[#617c89] dark:text-[#a0b3bd] mb-2">Page {page.pageNumber || index + 1}</p>
+                  <p className="text-base leading-relaxed">{page.text}</p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <pre className="whitespace-pre-wrap text-sm">{JSON.stringify(data.body, null, 2)}</pre>
-          )}
-        </article>
+              </div>
+            ))}
+          </div>
+        ) : data.type !== "checklist" ? (
+          <article className="prose dark:prose-invert max-w-none bg-white dark:bg-[#192730] p-4 rounded-lg">
+            {data.body?.story_html ? (
+              <div dangerouslySetInnerHTML={{ __html: data.body.story_html }} />
+            ) : (
+              <pre className="whitespace-pre-wrap text-sm">{JSON.stringify(data.body, null, 2)}</pre>
+            )}
+          </article>
+        ) : null}
         <div className="flex gap-2">
           <form action={`/api/share/${data.id}`} method="post">
             <button className="rounded-full bg-primary px-4 py-2 text-white">Share</button>

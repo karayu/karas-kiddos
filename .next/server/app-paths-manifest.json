@@ -1,5 +1,6 @@
 {
   "/page": "app/page.js",
-  "/library/page": "app/library/page.js",
-  "/library/bedtime/page": "app/library/bedtime/page.js"
+  "/content/[id]/page": "app/content/[id]/page.js",
+  "/library/new-situations/[situation]/create/page": "app/library/new-situations/[situation]/create/page.js",
+  "/library/page": "app/library/page.js"
 }

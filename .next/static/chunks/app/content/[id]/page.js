@@ -6,7 +6,7 @@
  * or disable the default devtool with "devtool: false".
  * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
  */
-(self["webpackChunk_N_E"] = self["webpackChunk_N_E"] || []).push([["app/library/bedtime/page"],{
+(self["webpackChunk_N_E"] = self["webpackChunk_N_E"] || []).push([["app/content/[id]/page"],{
 
 /***/ "(app-pages-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%7B%22request%22%3A%22%2FUsers%2Fkarayu%2Fprojects%2Fkaraskiddos%2Fapp%2Fcomponents%2FTabBar.tsx%22%2C%22ids%22%3A%5B%22TabBar%22%5D%7D&modules=%7B%22request%22%3A%22%2FUsers%2Fkarayu%2Fprojects%2Fkaraskiddos%2Fnode_modules%2Fnext%2Fdist%2Fclient%2Flink.js%22%2C%22ids%22%3A%5B%22*%22%5D%7D&server=false!":
 /*!******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
