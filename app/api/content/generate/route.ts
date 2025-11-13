@@ -206,9 +206,10 @@ Make it good!`;
 
     // For storybook type, generate a 10-page illustrated storybook
     if (body.type === "storybook") {
-      const genAI = getGemini();
-      const textModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-      const imageModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" });
+      try {
+        const genAI = getGemini();
+        const textModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const imageModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash-image" });
 
       const basePrompt = body.prompt || "Create a fun, entertaining story for a 5-year-old with a conflict that gets resolved at the end.";
       
@@ -218,12 +219,18 @@ Make it good!`;
 Create a professional, whimsical 10-page storybook for a 5-year-old child. The story should:
 - Have a clear conflict that gets resolved by the end
 - Be entertaining and age-appropriate
-- Be professional and whimsical in style
+- Be professional and whimsical in style, like the illustrations by Hollie Mengert or Daniel Salmieri
 - Each page should have 2-3 sentences of text
+
+IMPORTANT FOR ILLUSTRATIONS:
+- All illustrations must use the SAME drawing style across all 10 pages
+- The protagonist must look EXACTLY the same in every illustration (same appearance, clothing, colors, physical features)
+- The artistic style should be professional and whimsical, consistent throughout the entire storybook
 
 Return ONLY valid JSON in this exact format:
 {
   "title": "Story Title",
+  "protagonistDescription": "Detailed description of the protagonist's appearance, including physical features, clothing, colors, and any distinctive characteristics. This description will be used to ensure the protagonist looks identical across all 10 pages.",
   "pages": [
     {"pageNumber": 1, "text": "Page 1 text here", "imageDescription": "Detailed description of what should be illustrated on this page"},
     {"pageNumber": 2, "text": "Page 2 text here", "imageDescription": "Detailed description..."},
@@ -248,16 +255,34 @@ Important: Return ONLY the JSON object, no markdown code blocks, no explanation 
       let storyData: any;
       try {
         storyData = JSON.parse(storyText);
-      } catch (parseError) {
+        console.log("Parsed story data:", JSON.stringify(storyData, null, 2).substring(0, 500));
+      } catch (parseError: any) {
         console.error("Story JSON parse error:", parseError);
-        return NextResponse.json({ error: "Failed to parse story structure" }, { status: 500 });
+        console.error("Raw story text:", storyText.substring(0, 500));
+        return NextResponse.json({ 
+          error: "Failed to parse story structure", 
+          details: parseError.message,
+          rawText: storyText.substring(0, 200)
+        }, { status: 500 });
       }
 
-      if (!storyData.pages || storyData.pages.length !== 10) {
-        return NextResponse.json({ error: "Story must have exactly 10 pages" }, { status: 500 });
+      if (!storyData.pages || !Array.isArray(storyData.pages)) {
+        console.error("Invalid pages data:", storyData);
+        return NextResponse.json({ 
+          error: "Story structure missing pages array",
+          received: Object.keys(storyData)
+        }, { status: 500 });
+      }
+
+      if (storyData.pages.length !== 10) {
+        console.error(`Expected 10 pages, got ${storyData.pages.length}`);
+        return NextResponse.json({ 
+          error: `Story must have exactly 10 pages, got ${storyData.pages.length}` 
+        }, { status: 500 });
       }
 
       console.log(`Generated story structure: ${storyData.title} with ${storyData.pages.length} pages`);
+      console.log(`Protagonist description: ${storyData.protagonistDescription ? "Present" : "Missing (optional)"}`);
 
       // Step 2: Generate images for each page
       const pagesWithImages = [];
@@ -268,11 +293,31 @@ Important: Return ONLY the JSON object, no markdown code blocks, no explanation 
         const page = storyData.pages[i];
         console.log(`Generating image for page ${page.pageNumber}...`);
 
-        const imagePrompt = `Create a professional, whimsical children's book illustration. Style: colorful, playful, suitable for a 5-year-old, like a high-quality picture book by authors like Eric Carle or Julia Donaldson. 
+        // Get protagonist description from story data for consistency
+        const protagonistDesc = storyData.protagonistDescription || "";
+        
+        // Build style consistency instructions
+        let styleConsistencyNote = "";
+        if (i === 0) {
+          styleConsistencyNote = "This is the first page - establish the artistic style that will be used consistently across all 10 pages.";
+        } else {
+          styleConsistencyNote = "CRITICAL: Use the EXACT same artistic style, color palette, and illustration technique as page 1. The drawing style must be identical to maintain visual consistency throughout the storybook.";
+        }
+        
+        const imagePrompt = `Create a professional, whimsical children's book illustration in the style of Hollie Mengert or Daniel Salmieri. The illustration should be:
+- Professional and whimsical, with a cohesive artistic style
+- Colorful, playful, and suitable for a 5-year-old
+- High-quality, like a published picture book
+
+${styleConsistencyNote}
+
+${protagonistDesc ? `CRITICAL: The protagonist must look exactly like this in every illustration: ${protagonistDesc}. Make sure the protagonist's appearance (physical features, clothing, colors, etc.) is identical across all pages.` : ""}
 
 ${page.imageDescription}
 
-Make it bright, engaging, and professional. The illustration should fill the entire image and be suitable for a storybook page.`;
+${protagonistDesc ? `Remember: The protagonist must match the description provided above exactly.` : ""}
+
+Make it bright, engaging, and professional. The illustration should fill the entire image and be suitable for a storybook page. Ensure the artistic style is consistent with the other pages in this storybook.`;
 
         try {
           const imageCompletion = await imageModel.generateContent(imagePrompt);
@@ -376,39 +421,43 @@ Make it bright, engaging, and professional. The illustration should fill the ent
         originalPrompt: basePrompt,
       };
 
-      try {
-        console.log("=== Saving Storybook ===");
-        console.log("Title:", storybookData.title);
-        console.log("Cover/Thumbnail URL:", coverImageUrl);
-        console.log("Number of pages:", pagesWithImages.length);
-        
-        const { data: inserted, error } = await db
-          .from("content_items")
-          .insert({
-            profile_id: null,
-            child_id: null,
-            title: storybookData.title,
-            category: body.category,
-            type: "story", // Using "story" type since "storybook" isn't in the enum yet
-            body: storybookData,
-            cover_url: coverImageUrl, // This is the thumbnail from the first page image
-            is_public: true,
-          })
-          .select()
-          .single();
+      console.log("=== Saving Storybook ===");
+      console.log("Title:", storybookData.title);
+      console.log("Cover/Thumbnail URL:", coverImageUrl);
+      console.log("Number of pages:", pagesWithImages.length);
+      
+      const { data: inserted, error } = await db
+        .from("content_items")
+        .insert({
+          profile_id: null,
+          child_id: null,
+          title: storybookData.title,
+          category: body.category,
+          type: "story", // Using "story" type since "storybook" isn't in the enum yet
+          body: storybookData,
+          cover_url: coverImageUrl, // This is the thumbnail from the first page image
+          is_public: true,
+        })
+        .select()
+        .single();
 
-        if (error) {
-          console.error("Database insert error:", error);
-          return NextResponse.json({ error: error.message }, { status: 500 });
-        }
+      if (error) {
+        console.error("Database insert error:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
 
-        console.log("=== Storybook Generated Successfully ===");
-        console.log("Storybook ID:", inserted.id);
-        console.log("Cover URL saved:", inserted.cover_url);
-        return NextResponse.json({ content: inserted });
-      } catch (dbError: any) {
-        console.error("Database error:", dbError);
-        return NextResponse.json({ error: dbError.message || "Database error" }, { status: 500 });
+      console.log("=== Storybook Generated Successfully ===");
+      console.log("Storybook ID:", inserted.id);
+      console.log("Cover URL saved:", inserted.cover_url);
+      return NextResponse.json({ content: inserted });
+      } catch (storybookError: any) {
+        console.error("=== Storybook Generation Error ===");
+        console.error("Error:", storybookError);
+        console.error("Stack:", storybookError.stack);
+        return NextResponse.json({ 
+          error: storybookError.message || "Storybook generation failed",
+          details: storybookError.stack?.substring(0, 500)
+        }, { status: 500 });
       }
     }
 
@@ -470,8 +519,14 @@ Make it bright, engaging, and professional. The illustration should fill the ent
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json({ content: inserted });
   } catch (e: any) {
-    console.error("Generate error:", e);
-    return NextResponse.json({ error: e.message || "Generation failed" }, { status: 500 });
+    console.error("=== Generate Error ===");
+    console.error("Error message:", e.message);
+    console.error("Error stack:", e.stack);
+    console.error("Error details:", e);
+    return NextResponse.json({ 
+      error: e.message || "Generation failed",
+      details: e.stack?.substring(0, 500)
+    }, { status: 500 });
   }
 }
 
